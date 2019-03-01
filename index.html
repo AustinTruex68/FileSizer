@@ -1,0 +1,23 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>FileSizer</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.2.0/jszip.min.js"></script>
+    <script src="https://fastcdn.org/FileSaver.js/1.1.20151003/FileSaver.min.js"></script>
+    <script src="script.js"></script>
+</head>
+<body>
+    <div>Type: <span id="type" style="color: #2500E3; font-weight: bold;"></span></div>
+    <div>Name: <span id="name" style="color: #2500E3; font-weight: bold;"></span></div>
+    <div>Desired Size: <span id="desired" style="color: #2500E3; font-weight: bold;"></span></div>
+    <hr>
+    <input type="file" id="file">
+
+    <label for="desiredSize">Desired(MB)</label>
+    <input name="desiredSize" type="number" id="size">
+
+    <button id="go">Go!</button>
+
+</body>
+</html>
