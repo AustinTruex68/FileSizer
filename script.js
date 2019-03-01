@@ -2,11 +2,16 @@ $(document).ready(function($) {
 var input = document.querySelector('input[type=file]');
 var fileType = "";
 var fileName = "";
+var loading = false;
+var lInterval;
 
 $("#go").on('click', function(){
     console.log("Go!");
-    changeFile();
-})
+    if(!loading){
+        changeFile();
+        startLoading();
+    }
+});
 
 function buildReader(file) {
     const reader = new FileReader();
@@ -30,9 +35,11 @@ function readFile(event) {
 
       console.log("Current Size: " + currentSize );
       console.log("Desired Size: " + desiredSize);
+      $("#currentAt").text(currentSize);
 
       if(currentSize <= desiredSize || currentSize <= 1000000){
-            alert('to small, all done!');
+            stopLoading();
+            alert('Close as I can be!');
 
             var canvas = document.createElement('canvas');
             var ctx = canvas.getContext('2d');
@@ -43,7 +50,6 @@ function readFile(event) {
 
             ctx.canvas.toBlob((blob) => {
                 saveAs(blob, fileName)
-                endAll()
             });
 
       } else {
@@ -94,6 +100,27 @@ function applyUiUpdates(file) {
     $("#type").text(fileType);
     $("#name").text(fileName);
     $("#desired").text($("#size").val() + "(mb)");
+}
+
+function startLoading() {
+    loading = true;
+    $("#loader").css('display', 'inline');
+    var dCount = 0;
+    lInterval = setInterval(function(){
+        dCount++
+
+        if(dCount >= 4)
+            dCount = 0;
+
+        $("#loader").text("Loading" + ".".repeat(dCount))
+    }, 300);
+}
+
+function stopLoading() {
+    loading = false;
+    $("#loader").css('display', 'none');
+    clearInterval(lInterval);
+    $("#currentAt").text("");
 }
 
 
