@@ -4,18 +4,51 @@ var fileType = "";
 var fileName = "";
 var loading = false;
 var lInterval;
+var finishedBlobs = [];
+var fileCount = 0;
+var currentFile = 0;
 
+// start
 $("#go").on('click', function(){
-    console.log("Go!");
     if(!loading){
-        changeFile();
+        fileCount = input.files.length;
+        changeFile(0);
         startLoading();
     }
 });
 
-function buildReader(file) {
-    const reader = new FileReader();
-    reader.readAsDataURL()
+// loaders
+function startLoading() {
+    loading = true;
+    $("#loader").css('display', 'inline');
+    var dCount = 0;
+    lInterval = setInterval(function(){
+        dCount++
+
+        if(dCount >= 4)
+            dCount = 0;
+
+        $("#loader").text("Loading" + ".".repeat(dCount))
+    }, 300);
+}
+
+function stopLoading() {
+    loading = false;
+    $("#loader").css('display', 'none');
+    clearInterval(lInterval);
+    $("#currentAt").text("");
+}
+
+//main
+// reads file input
+function changeFile(index) {
+  console.log(input.files);
+  currentFile = index;
+  var file = input.files[index];
+  applyUiUpdates(file);
+  var reader = new FileReader();
+  reader.addEventListener('load', readFile);
+  reader.readAsDataURL(file);
 }
 
 function readFile(event) {
@@ -32,14 +65,14 @@ function readFile(event) {
   imgHolder.onload = function(){
 
       currentWidth = imgHolder.width;
-
+      console.log("Current File: " + currentFile);
       console.log("Current Size: " + currentSize );
       console.log("Desired Size: " + desiredSize);
       $("#currentAt").text(currentSize);
 
       if(currentSize <= desiredSize || currentSize <= 1000000){
-            stopLoading();
-            alert('Close as I can be!');
+            console.log(fileCount);
+            // alert('Close as I can be!');
 
             var canvas = document.createElement('canvas');
             var ctx = canvas.getContext('2d');
@@ -49,7 +82,25 @@ function readFile(event) {
             ctx.drawImage(img, 0, 0);
 
             ctx.canvas.toBlob((blob) => {
-                saveAs(blob, fileName)
+                finishedBlobs.push({blob: blob, fileName: fileName + "-" + $("#size").val() + "(mb).jpg"});
+                if(currentFile + 1 < fileCount){
+                  changeFile(currentFile + 1);
+                } else {
+                  var zip = new JSZip();
+                  for(var i = 0; i < finishedBlobs.length; i++){
+                    zip.file(finishedBlobs[i].fileName, finishedBlobs[i].blob);
+                  }
+
+                  zip.generateAsync({type: "blob"}).then(function(content){
+                      saveAs(content, "filez.zip");
+                  })
+
+
+                  stopLoading();
+                  // alert("I have finished all of the files");
+                  console.log(finishedBlobs);
+                  }
+
             });
 
       } else {
@@ -82,16 +133,24 @@ function readFile(event) {
 
 }
 
-// reads file input
-function changeFile() {
-  var file = input.files[0];
+//should do the chunk in half thing
+// function readFileV2(event) {
+//   var currentWidth;
+//   var currentSize = event.total;
+//   var desiredSize = (Number($("#size").val()) * 1e6) - 1000000;
 
-  applyUiUpdates(file);
+//   var img = new Image();
+//   img.src = event.target.result;
 
-  var reader = new FileReader();
-  reader.addEventListener('load', readFile);
-  reader.readAsDataURL(file);
-}
+//   // create image holder to read current size
+//   var imgHolder = document.createElement('img');
+//   imgHolder.src = event.target.result;
+
+//   imgHolder.onload = function() {
+    
+//   }
+
+// }
 
 
 function applyUiUpdates(file) {
@@ -101,30 +160,5 @@ function applyUiUpdates(file) {
     $("#name").text(fileName);
     $("#desired").text($("#size").val() + "(mb)");
 }
-
-function startLoading() {
-    loading = true;
-    $("#loader").css('display', 'inline');
-    var dCount = 0;
-    lInterval = setInterval(function(){
-        dCount++
-
-        if(dCount >= 4)
-            dCount = 0;
-
-        $("#loader").text("Loading" + ".".repeat(dCount))
-    }, 300);
-}
-
-function stopLoading() {
-    loading = false;
-    $("#loader").css('display', 'none');
-    clearInterval(lInterval);
-    $("#currentAt").text("");
-}
-
-
-
-// input.addEventListener('change', changeFile);
 
 });
